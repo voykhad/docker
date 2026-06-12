@@ -1,41 +1,52 @@
-name: CI - Kubernetes Integration Tests
-
+name: DevOps K8s CI
+ 
 on:
+
   push:
+
     branches: [ main, develop ]
+
   pull_request:
+
     branches: [ main, develop ]
-
-permissions:
-  contents: read
-  security-events: write
-  actions: read
-
+ 
 jobs:
-  build-and-test:
+
+  k8s-test:
+
     runs-on: ubuntu-latest
-    timeout-minutes: 30
-
+ 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
 
-      - name: Set up JDK 21
-        uses: actions/setup-java@v4
-        with:
-          distribution: 'temurin'
-          java-version: '21'
-          cache: 'gradle'
+    - name: Checkout local repository
 
-      - name: Run Tests
-        run: |
-          cd ./MyService
-          chmod +x gradlew
-          ./gradlew test
+      uses: actions/checkout@v3
+ 
+    - name: Start Minikube Cluster
 
-      - name: Build Docker images
-        run: |
-          cd ./MyService
-          docker build -t myservice:latest .
+      uses: medyagh/setup-minikube@master
 
+      with:
 
+        minikube-version: 'latest'
+
+        driver: 'docker'
+ 
+    # Étape corrigée avec le bon chemin vers le sous-dossier k8s
+
+    - name: Apply DevOps Infrastructure
+
+      run: |
+
+        kubectl apply -f k8s/infrastructure.yaml
+ 
+    - name: Check K8s Resources Status
+
+      run: |
+
+        kubectl get deployments
+
+        kubectl get pods
+
+        kubectl get services
+ 
